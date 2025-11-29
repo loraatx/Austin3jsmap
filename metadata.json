@@ -1,0 +1,5 @@
+{
+  "name": "Austin 3D Explorer",
+  "description": "A stylized, interactive 3D map of Austin, Texas. Explore key landmarks and ask Gemini for real-time information, history, and local tips.",
+  "requestFramePermissions": []
+}
