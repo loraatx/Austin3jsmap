@@ -1,10 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { INITIAL_SYSTEM_INSTRUCTION } from '../constants';
 
-const apiKey = process.env.API_KEY;
+const apiKey = process.env.GEMINI_API_KEY;
 
 if (!apiKey) {
-  console.error("API_KEY is missing from environment variables.");
+  console.error("GEMINI_API_KEY is missing from environment variables.");
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || 'dummy-key-for-build' });

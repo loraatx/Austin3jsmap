@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, MapPin, X, Info, ExternalLink } from 'lucide-react';
 import { LandmarkData, ChatMessage } from '../types';
 import { sendMessageToGemini } from '../services/geminiService';
@@ -22,19 +22,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ selectedLandmark, onCloseSelectio
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // When a landmark is selected, automatically ask Gemini about it
-  useEffect(() => {
-    if (selectedLandmark) {
-      handleLandmarkSelection(selectedLandmark);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLandmark]);
-
-  const handleLandmarkSelection = async (landmark: LandmarkData) => {
+  const handleLandmarkSelection = useCallback(async (landmark: LandmarkData) => {
     // Add a UI message indicating selection
-    const selectionMsg: ChatMessage = { 
-        role: 'user', 
-        text: `Tell me about ${landmark.name}` 
+    const selectionMsg: ChatMessage = {
+        role: 'user',
+        text: `Tell me about ${landmark.name}`
     };
     
     setMessages(prev => [...prev, selectionMsg]);
@@ -42,10 +34,17 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ selectedLandmark, onCloseSelectio
 
     const context = `The user has clicked on ${landmark.name} (${landmark.type}) in the 3D map. ${landmark.description}`;
     const response = await sendMessageToGemini(context);
-    
+
     setMessages(prev => [...prev, { role: 'model', text: response }]);
     setIsLoading(false);
-  };
+  }, []);
+
+  // When a landmark is selected, automatically ask Gemini about it
+  useEffect(() => {
+    if (selectedLandmark) {
+      handleLandmarkSelection(selectedLandmark);
+    }
+  }, [selectedLandmark, handleLandmarkSelection]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -55,8 +54,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ selectedLandmark, onCloseSelectio
     setInput('');
     setIsLoading(true);
 
-    // Prepare history for context
-    const history = messages.map(m => ({
+    // Prepare history for context (including the new user message)
+    const history = [...messages, userMsg].map(m => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: m.text }]
     }));
